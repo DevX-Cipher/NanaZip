@@ -14,6 +14,8 @@
 
 #include <map>
 
+#include "Mile.Helpers.Portable.Base.Unstaged.h"
+
 namespace
 {
     struct PropertyItem
@@ -88,7 +90,10 @@ namespace
     struct WebAssemblySection
     {
         std::uint64_t Offset = 0;
-        std::uint64_t Size = 0;
+        // According to https://www.w3.org/TR/wasm-core-1/#sections%E2%91%A0 ,
+        // we will know each section consists of the u32 size of the contents,
+        // in bytes.
+        std::uint32_t Size = 0;
         std::string Name;
     };
 }
@@ -105,18 +110,6 @@ namespace NanaZip::Codecs::Archive
         bool m_IsInitialized = false;
 
     private:
-
-        std::uint32_t ReadUInt32(
-            const void* BaseAddress)
-        {
-            const std::uint8_t* Base =
-                reinterpret_cast<const std::uint8_t*>(BaseAddress);
-            return
-                (static_cast<std::uint32_t>(Base[0])) |
-                (static_cast<std::uint32_t>(Base[1]) << 8) |
-                (static_cast<std::uint32_t>(Base[2]) << 16) |
-                (static_cast<std::uint32_t>(Base[3]) << 24);
-        }
 
         std::uint32_t ReadUleb128(
             const void* BaseAddress,
@@ -246,7 +239,7 @@ namespace NanaZip::Codecs::Archive
                     break;
                 }
 
-                std::uint32_t Version = this->ReadUInt32(
+                std::uint32_t Version = ::MileReadUInt32LittleEndian(
                     &HeaderBuffer[sizeof(std::uint32_t)]);
                 if (1 != Version)
                 {
@@ -261,10 +254,10 @@ namespace NanaZip::Codecs::Archive
                     {
                         const std::size_t MaximumSize =
                             sizeof(std::uint8_t) * (1 + 5);
-                        std::size_t AcquireSize =
+                        std::size_t AcquireSize = static_cast<std::size_t>(
                             BundleSize - i < MaximumSize
                             ? BundleSize - i
-                            : MaximumSize;
+                            : MaximumSize);
                         std::uint8_t Buffer[MaximumSize] = { 0 };
                         if (FAILED(this->ReadFileStream(
                             i,
@@ -293,10 +286,10 @@ namespace NanaZip::Codecs::Archive
                         {
                             const std::size_t MaximumSize =
                                 sizeof(std::uint8_t) * 5;
-                            std::size_t AcquireSize =
+                            std::size_t AcquireSize = static_cast<std::size_t>(
                                 BundleSize - i < MaximumSize
                                 ? BundleSize - i
-                                : MaximumSize;
+                                : MaximumSize);
                             std::uint8_t Buffer[MaximumSize] = { 0 };
                             if (FAILED(this->ReadFileStream(
                                 i,
@@ -334,6 +327,10 @@ namespace NanaZip::Codecs::Archive
                         : std::string(".") + CustomName;
                     Sections.emplace(Section.Name, Section);
                     i += Size;
+                }
+                if (!this->m_FullSize && !Sections.empty())
+                {
+                    this->m_FullSize = BundleSize;
                 }
 
                 std::uint64_t TotalFiles = Sections.size();
@@ -551,8 +548,6 @@ namespace NanaZip::Codecs::Archive
             _In_ PROPID PropId,
             _Inout_ LPPROPVARIANT Value)
         {
-            UNREFERENCED_PARAMETER(PropId);
-
             if (!this->m_IsInitialized)
             {
                 return S_FALSE;
@@ -561,6 +556,18 @@ namespace NanaZip::Codecs::Archive
             if (!Value)
             {
                 return E_INVALIDARG;
+            }
+
+            switch (PropId)
+            {
+            case SevenZipArchivePhysicalSize:
+            {
+                Value->uhVal.QuadPart = this->m_FullSize;
+                Value->vt = VT_UI8;
+                break;
+            }
+            default:
+                break;
             }
 
             return S_OK;

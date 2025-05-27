@@ -13,9 +13,9 @@ the `Assets` folder) are designed by Shomnipotence and authorized to the
 NanaZip project, and it is distributed under the CC BY-ND 4.0 License.
 
 The source code from 7-Zip or other 7-Zip derivatives (these contents are only 
-in the `NanaZip.Core\SevenZip`, `NanaZip.Core\Extensions\ZSCodecs`, 
-`NanaZip.UI.Classic\SevenZip` and `NanaZip.UI.Modern\SevenZip` folders) is
-distributed under the 7-Zip License.
+in the `NanaZip.Core\SevenZip`, `NanaZip.Core\Extensions\ZSCodecs`,
+`NanaZip.Universal\SevenZip`, `NanaZip.UI.Classic\SevenZip` and
+`NanaZip.UI.Modern\SevenZip` folders) is distributed under the 7-Zip License.
 
 The source code from the third-party libraries is distributed under the original
 license used in the third-party libraries.
@@ -582,18 +582,21 @@ Creative Commons may be contacted at creativecommons.org.
 - Fast LZMA2, https://github.com/conor42/fast-lzma2
 - FreeBSD, https://github.com/freebsd/freebsd-src
 - GmSSL, https://github.com/guanzhi/GmSSL
+- littlefs, https://github.com/littlefs-project/littlefs
 - Lizard, https://github.com/inikep/lizard
 - LZ4, https://github.com/lz4/lz4
 - LZ5, https://github.com/inikep/lizard
 - LZMA SDK, https://www.7-zip.org/sdk.html
 - Mile.Detours, https://github.com/ProjectMile/Mile.Detours
 - Mile.Json, https://github.com/ProjectMile/Mile.Json
-- Mile.Project.Windows, https://github.com/ProjectMile/Mile.Project.Windows
+- Mile.Mobility, https://github.com/ProjectMile/Mile.Mobility
+- Mile.Project.Configurations, https://github.com/ProjectMile/Mile.Project.Configurations
 - Mile.Windows.Helpers, https://github.com/ProjectMile/Mile.Windows.Helpers
 - Mile.Windows.Internal, https://github.com/ProjectMile/Mile.Windows.Internal
 - Mile.Windows.UniCrt, https://github.com/ProjectMile/Mile.Windows.UniCrt
 - Mile.Xaml, https://github.com/ProjectMile/Mile.Xaml
 - RHash, https://github.com/rhash/RHash
+- Windows-driver-samples, https://github.com/microsoft/Windows-driver-samples
 - xxHash, https://github.com/Cyan4973/xxHash
 - Zstandard, https://github.com/facebook/zstd
 - ZSTDMT, https://github.com/mcmilk/zstdmt

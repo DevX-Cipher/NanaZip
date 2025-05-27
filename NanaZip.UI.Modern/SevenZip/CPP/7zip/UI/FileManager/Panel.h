@@ -3,6 +3,11 @@
 #ifndef __PANEL_H
 #define __PANEL_H
 
+#undef GetCurrentTime
+
+#include <winrt/NanaZip.ModernExperience.h>
+#include <winrt/Windows.Foundation.Collections.h>
+
 #include "../../../Common/MyWindows.h"
 
 #include <ShlObj.h>
@@ -20,7 +25,7 @@
 #include "../../../Windows/PropVariantConv.h"
 #include "../../../Windows/Synchronization.h"
 
-#include "../../../Windows/Control/ComboBox.h"
+// #include "../../../Windows/Control/ComboBox.h"
 #include "../../../Windows/Control/Edit.h"
 #include "../../../Windows/Control/ListView.h"
 #include "../../../Windows/Control/ReBar.h"
@@ -210,13 +215,13 @@ public:
   LRESULT OnMessage(UINT message, WPARAM wParam, LPARAM lParam);
 };
 */
-class CMyComboBoxEdit: public NWindows::NControl::CEdit
-{
-public:
-  WNDPROC _origWindowProc;
-  CPanel *_panel;
-  LRESULT OnMessage(UINT message, WPARAM wParam, LPARAM lParam);
-};
+// class CMyComboBoxEdit: public NWindows::NControl::CEdit
+// {
+// public:
+//   WNDPROC _origWindowProc;
+//   CPanel *_panel;
+//   LRESULT OnMessage(UINT message, WPARAM wParam, LPARAM lParam);
+// };
 
 struct CSelectedState
 {
@@ -262,7 +267,7 @@ struct CCopyToOptions
       replaceAltStreamChars(false),
       showErrorMessages(false),
       NeedRegistryZone(true),
-      ZoneIdMode(NExtract::NZoneIdMode::kNone),
+      ZoneIdMode(NExtract::NZoneIdMode::Default),  // NanaZip Modification
       VirtFileSystemSpec(NULL),
       VirtFileSystem(NULL)
       {}
@@ -304,12 +309,21 @@ class CPanel: public NWindows::NControl::CWindow2
 
   void AddComboBoxItem(const UString &name, int iconIndex, int indent, bool addToList);
 
-  bool OnComboBoxCommand(UINT code, LPARAM param, LRESULT &result);
+  // bool OnComboBoxCommand(UINT code, LPARAM param, LRESULT &result);
+
+  void OnDropDownOpened(
+      winrt::NanaZip::ModernExperience::AddressBar const&,
+      winrt::Windows::Foundation::IInspectable const&
+  );
 
   #ifndef UNDER_CE
 
   LRESULT OnNotifyComboBoxEnter(const UString &s);
-  bool OnNotifyComboBoxEndEdit(PNMCBEENDEDITW info, LRESULT &result);
+  void OnAddressBarQuerySubmitted(
+      winrt::NanaZip::ModernExperience::AddressBar const&,
+      winrt::NanaZip::ModernExperience::AddressBarQuerySubmittedEventArgs const&);
+
+  // bool OnNotifyComboBoxEndEdit(PNMCBEENDEDITW info, LRESULT &result);
   #ifndef _UNICODE
   bool OnNotifyComboBoxEndEdit(PNMCBEENDEDIT info, LRESULT &result);
   #endif
@@ -317,7 +331,7 @@ class CPanel: public NWindows::NControl::CWindow2
   #endif
 
   bool OnNotifyReBar(LPNMHDR lParam, LRESULT &result);
-  bool OnNotifyComboBox(LPNMHDR lParam, LRESULT &result);
+  // bool OnNotifyComboBox(LPNMHDR lParam, LRESULT &result);
   void OnItemChanged(NMLISTVIEW *item);
   void OnNotifyActivateItems();
   bool OnNotifyList(LPNMHDR lParam, LRESULT &result);
@@ -371,6 +385,7 @@ private:
   // CRecordVector<PROPID> m_ColumnsPropIDs;
 
 public:
+  /*
   NWindows::NControl::CReBar _headerReBar;
   NWindows::NControl::CToolBar _headerToolBar;
   NWindows::NControl::
@@ -380,15 +395,23 @@ public:
     CComboBoxEx
     #endif
     _headerComboBox;
+  */
   UStringVector ComboBoxPaths;
   // CMyComboBox _headerComboBox;
-  CMyComboBoxEdit _comboBoxEdit;
+  // CMyComboBoxEdit _comboBoxEdit;
   CMyListView _listView;
   bool _thereAre_ListView_Items;
   NWindows::NControl::CStatusBar _statusBar;
   bool _lastFocusedIsList;
   // NWindows::NControl::CStatusBar _statusBar2;
+  winrt::Windows::Foundation::Collections::IObservableVector<
+      winrt::NanaZip::ModernExperience::AddressBarItem>
+      _items{ nullptr };
 
+  HWND _addressBarWindow{ nullptr };
+  winrt::NanaZip::ModernExperience::AddressBar _addressBarControl{ nullptr };
+  HIMAGELIST _sysImageList{ nullptr };
+  
   DWORD _exStyle;
   bool _showDots;
   bool _showRealFileIcons;

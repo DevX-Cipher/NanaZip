@@ -15,6 +15,8 @@
 #include <map>
 #include <Mile.Json.h>
 
+#include "Mile.Helpers.Portable.Base.Unstaged.h"
+
 namespace
 {
     struct PropertyItem
@@ -48,6 +50,7 @@ namespace NanaZip::Codecs::Archive
     private:
 
         IInStream* m_FileStream = nullptr;
+        std::uint64_t m_FullSize = 0;
         std::uint64_t m_GlobalOffset = 0;
         std::map<std::string, BundleFileEntry> m_TemporaryFilePaths;
         std::vector<BundleFileEntry> m_FilePaths;
@@ -58,13 +61,7 @@ namespace NanaZip::Codecs::Archive
         std::uint32_t ReadUInt32(
             const void* BaseAddress)
         {
-            const std::uint8_t* Base =
-                reinterpret_cast<const std::uint8_t*>(BaseAddress);
-            return
-                (static_cast<std::uint32_t>(Base[0])) |
-                (static_cast<std::uint32_t>(Base[1]) << 8) |
-                (static_cast<std::uint32_t>(Base[2]) << 16) |
-                (static_cast<std::uint32_t>(Base[3]) << 24);
+            return ::MileReadUInt32LittleEndian(BaseAddress);
         }
 
         HRESULT ReadFileStream(
@@ -221,14 +218,6 @@ namespace NanaZip::Codecs::Archive
                     break;
                 }
 
-                std::uint64_t TotalFiles = 0;
-                std::uint64_t TotalBytes = BundleSize;
-
-                if (OpenCallback)
-                {
-                    OpenCallback->SetTotal(&TotalFiles, &TotalBytes);
-                }
-
                 try
                 {
                     nlohmann::json HeaderObject =
@@ -240,7 +229,14 @@ namespace NanaZip::Codecs::Archive
                     break;
                 }
 
-                TotalFiles = this->m_TemporaryFilePaths.size();
+                this->m_FullSize = this->m_GlobalOffset;
+                for (auto const& Item : this->m_TemporaryFilePaths)
+                {
+                    this->m_FullSize += Item.second.Size;
+                }
+
+                std::uint64_t TotalFiles = this->m_TemporaryFilePaths.size();
+                std::uint64_t TotalBytes = this->m_FullSize;
                 if (OpenCallback)
                 {
                     OpenCallback->SetTotal(&TotalFiles, &TotalBytes);
@@ -275,6 +271,7 @@ namespace NanaZip::Codecs::Archive
             this->m_IsInitialized = false;
             this->m_FilePaths.clear();
             this->m_GlobalOffset = 0;
+            this->m_FullSize = 0;
             if (this->m_FileStream)
             {
                 this->m_FileStream->Release();
@@ -420,11 +417,12 @@ namespace NanaZip::Codecs::Archive
                 }
 
                 bool Succeeded = false;
-                std::vector<std::uint8_t> Buffer(Information.Size);
+                std::vector<std::uint8_t> Buffer(
+                    static_cast<std::size_t>(Information.Size));
                 if (SUCCEEDED(this->ReadFileStream(
                     this->m_GlobalOffset + Information.Offset,
                     &Buffer[0],
-                    Information.Size)))
+                    static_cast<std::size_t>(Information.Size))))
                 {
                     UINT32 ProceededSize = 0;
                     Succeeded = SUCCEEDED(OutputStream->Write(
@@ -448,8 +446,6 @@ namespace NanaZip::Codecs::Archive
             _In_ PROPID PropId,
             _Inout_ LPPROPVARIANT Value)
         {
-            UNREFERENCED_PARAMETER(PropId);
-
             if (!this->m_IsInitialized)
             {
                 return S_FALSE;
@@ -458,6 +454,18 @@ namespace NanaZip::Codecs::Archive
             if (!Value)
             {
                 return E_INVALIDARG;
+            }
+
+            switch (PropId)
+            {
+            case SevenZipArchivePhysicalSize:
+            {
+                Value->uhVal.QuadPart = this->m_FullSize;
+                Value->vt = VT_UI8;
+                break;
+            }
+            default:
+                break;
             }
 
             return S_OK;

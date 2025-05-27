@@ -14,6 +14,8 @@
 
 #include <map>
 
+#include "Mile.Helpers.Portable.Base.Unstaged.h"
+
 namespace
 {
     struct PropertyItem
@@ -41,14 +43,14 @@ namespace
     // - src/installer/managed/Microsoft.NET.HostModel/Bundle/Manifest.cs
     //
     // FileEntry: Records information about embedded files.
-    // 
-    // The bundle manifest records the following meta-data for each 
+    //
+    // The bundle manifest records the following meta-data for each
     // file embedded in the bundle:
     // Fixed size portion (file_entry_fixed_t)
-    //   - Offset     
-    //   - Size       
+    //   - Offset
+    //   - Size
     //   - CompressedSize  - only in bundleVersion 6+
-    //   - File Entry Type       
+    //   - File Entry Type
     // Variable Size portion
     //   - relative path (7-bit extension encoded length prefixed string)
     //
@@ -169,6 +171,7 @@ namespace NanaZip::Codecs::Archive
     private:
 
         IInStream* m_FileStream = nullptr;
+        std::uint64_t m_FullSize = 0;
         std::vector<BundleFileEntry> m_FilePaths;
         bool m_IsInitialized = false;
 
@@ -177,47 +180,25 @@ namespace NanaZip::Codecs::Archive
         std::uint8_t ReadUInt8(
             const void* BaseAddress)
         {
-            const std::uint8_t* Base =
-                reinterpret_cast<const std::uint8_t*>(BaseAddress);
-            return Base[0];
+            return ::MileReadUInt8(BaseAddress);
         }
 
         std::uint16_t ReadUInt16(
             const void* BaseAddress)
         {
-            const std::uint8_t* Base =
-                reinterpret_cast<const std::uint8_t*>(BaseAddress);
-            return
-                (static_cast<std::uint16_t>(Base[0])) |
-                (static_cast<std::uint16_t>(Base[1]) << 8);
+            return ::MileReadUInt16LittleEndian(BaseAddress);
         }
 
         std::uint32_t ReadUInt32(
             const void* BaseAddress)
         {
-            const std::uint8_t* Base =
-                reinterpret_cast<const std::uint8_t*>(BaseAddress);
-            return
-                (static_cast<std::uint32_t>(Base[0])) |
-                (static_cast<std::uint32_t>(Base[1]) << 8) |
-                (static_cast<std::uint32_t>(Base[2]) << 16) |
-                (static_cast<std::uint32_t>(Base[3]) << 24);
+            return ::MileReadUInt32LittleEndian(BaseAddress);
         }
 
         std::uint64_t ReadUInt64(
             const void* BaseAddress)
         {
-            const std::uint8_t* Base =
-                reinterpret_cast<const std::uint8_t*>(BaseAddress);
-            return
-                (static_cast<std::uint64_t>(Base[0])) |
-                (static_cast<std::uint64_t>(Base[1]) << 8) |
-                (static_cast<std::uint64_t>(Base[2]) << 16) |
-                (static_cast<std::uint64_t>(Base[3]) << 24) |
-                (static_cast<std::uint64_t>(Base[4]) << 32) |
-                (static_cast<std::uint64_t>(Base[5]) << 40) |
-                (static_cast<std::uint64_t>(Base[6]) << 48) |
-                (static_cast<std::uint64_t>(Base[7]) << 56);
+            return ::MileReadUInt64LittleEndian(BaseAddress);
         }
 
         std::int8_t ReadInt8(
@@ -322,10 +303,10 @@ namespace NanaZip::Codecs::Archive
                     break;
                 }
 
-                std::size_t SearchBufferSize =
+                std::size_t SearchBufferSize = static_cast<std::size_t>(
                     BundleSize < g_SignatureSearchBufferSize
                     ? BundleSize
-                    : g_SignatureSearchBufferSize;
+                    : g_SignatureSearchBufferSize);
 
                 std::vector<std::uint8_t> SearchBuffer(SearchBufferSize);
                 if (FAILED(this->ReadFileStream(
@@ -368,7 +349,8 @@ namespace NanaZip::Codecs::Archive
                     break;
                 }
 
-                std::size_t HeaderBufferSize = BundleSize - BundleHeaderOffset;
+                std::size_t HeaderBufferSize = static_cast<std::size_t>(
+                    BundleSize - BundleHeaderOffset);
 
                 std::vector<std::uint8_t> HeaderBuffer(HeaderBufferSize);
                 if (FAILED(this->ReadFileStream(
@@ -420,7 +402,9 @@ namespace NanaZip::Codecs::Archive
                         Current += sizeof(std::uint64_t);
                     }
 
-                    for (size_t i = 0; i < Header.NumberOfEmbeddedFiles; ++i)
+                    for (std::int32_t i = 0;
+                        i < Header.NumberOfEmbeddedFiles;
+                        ++i)
                     {
                         BundleFileEntry Entry;
                         Entry.Offset =
@@ -455,6 +439,7 @@ namespace NanaZip::Codecs::Archive
                         Current += RelativePathLength;
                         Files.emplace(Entry.RelativePath, Entry);
                     }
+                    this->m_FullSize = BundleHeaderOffset + Current;
                 }
                 catch (...)
                 {
@@ -464,7 +449,7 @@ namespace NanaZip::Codecs::Archive
                 HeaderBuffer.clear();
 
                 std::uint64_t TotalFiles = Files.size();
-                std::uint64_t TotalBytes = BundleSize;
+                std::uint64_t TotalBytes = this->m_FullSize;
 
                 if (OpenCallback)
                 {
@@ -496,6 +481,7 @@ namespace NanaZip::Codecs::Archive
         {
             this->m_IsInitialized = false;
             this->m_FilePaths.clear();
+            this->m_FullSize = 0;
             if (this->m_FileStream)
             {
                 this->m_FileStream->Release();
@@ -643,11 +629,12 @@ namespace NanaZip::Codecs::Archive
                 bool Succeeded = false;
                 if (Information.Size == Information.CompressedSize)
                 {
-                    std::vector<std::uint8_t> Buffer(Information.Size);
+                    std::vector<std::uint8_t> Buffer(
+                        static_cast<std::size_t>(Information.Size));
                     if (SUCCEEDED(this->ReadFileStream(
                         Information.Offset,
                         &Buffer[0],
-                        Information.Size)))
+                        static_cast<std::size_t>(Information.Size))))
                     {
                         UINT32 ProceededSize = 0;
                         Succeeded = SUCCEEDED(OutputStream->Write(
@@ -672,8 +659,6 @@ namespace NanaZip::Codecs::Archive
             _In_ PROPID PropId,
             _Inout_ LPPROPVARIANT Value)
         {
-            UNREFERENCED_PARAMETER(PropId);
-
             if (!this->m_IsInitialized)
             {
                 return S_FALSE;
@@ -682,6 +667,18 @@ namespace NanaZip::Codecs::Archive
             if (!Value)
             {
                 return E_INVALIDARG;
+            }
+
+            switch (PropId)
+            {
+            case SevenZipArchivePhysicalSize:
+            {
+                Value->uhVal.QuadPart = this->m_FullSize;
+                Value->vt = VT_UI8;
+                break;
+            }
+            default:
+                break;
             }
 
             return S_OK;

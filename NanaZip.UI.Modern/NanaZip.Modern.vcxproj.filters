@@ -67,21 +67,6 @@
     <Filter Include="SevenZip\Windows\Control">
       <UniqueIdentifier>{7129b3d3-8d4d-44d1-a771-d6314d17e0a2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Strings">
-      <UniqueIdentifier>{92aa704d-4b05-48dd-ae91-5d2e02a11c6e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Strings\en">
-      <UniqueIdentifier>{a5210684-7934-4d34-94b0-f9ef3ae5c2f3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Strings\zh-Hans">
-      <UniqueIdentifier>{0237aed3-2eca-4267-a2e7-4c9e8e2f37f8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Strings\pl">
-      <UniqueIdentifier>{41dcb6ac-4f56-4e58-9e96-f4337ba4619a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Strings\pt-BR">
-      <UniqueIdentifier>{448c6906-c923-4673-8ff3-5af434e99f42}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\ParentFolder.bmp">
@@ -533,8 +518,6 @@
     <ClCompile Include="SevenZip\CPP\Common\DynLimBuf.cpp">
       <Filter>SevenZip\Common</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="NanaZip.UI.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -1054,7 +1037,6 @@
     <ClInclude Include="SevenZip\CPP\Common\DynLimBuf.h">
       <Filter>SevenZip\Common</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h" />
     <ClInclude Include="NanaZip.UI.h" />
   </ItemGroup>
   <ItemGroup>
@@ -1064,39 +1046,5 @@
     <ResourceCompile Include="SevenZip\CPP\7zip\UI\FileManager\resource.rc">
       <Filter>SevenZip\Spec</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="App.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="AboutPage.xaml" />
-    <Page Include="MainWindowToolBarPage.xaml" />
-    <Page Include="SponsorPage.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <PRIResource Include="Strings\en\MainWindowToolBarPage.resw">
-      <Filter>Strings\en</Filter>
-    </PRIResource>
-    <PRIResource Include="Strings\zh-Hans\MainWindowToolBarPage.resw">
-      <Filter>Strings\zh-Hans</Filter>
-    </PRIResource>
-    <PRIResource Include="Strings\en\SponsorPage.resw">
-      <Filter>Strings\en</Filter>
-    </PRIResource>
-    <PRIResource Include="Strings\zh-Hans\SponsorPage.resw">
-      <Filter>Strings\zh-Hans</Filter>
-    </PRIResource>
-    <PRIResource Include="Strings\pl\SponsorPage.resw">
-      <Filter>Strings\pl</Filter>
-    </PRIResource>
-    <PRIResource Include="Strings\pl\MainWindowToolBarPage.resw">
-      <Filter>Strings\pl</Filter>
-    </PRIResource>
-    <PRIResource Include="Strings\pt-BR\MainWindowToolBarPage.resw">
-      <Filter>Strings\pt-BR</Filter>
-    </PRIResource>
-    <PRIResource Include="Strings\pt-BR\SponsorPage.resw">
-      <Filter>Strings\pt-BR</Filter>
-    </PRIResource>
   </ItemGroup>
 </Project>

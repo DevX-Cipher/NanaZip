@@ -17,9 +17,9 @@
 struct CExtractOptionsBase
 {
   CBoolPair ElimDup;
-// **************** NanaZip Modification Start ****************
+  // **************** NanaZip Modification Start ****************
   CBoolPair SmartExtract;
-// **************** NanaZip Modification End ****************
+  // **************** NanaZip Modification End ****************
 
   bool ExcludeDirItems;
   bool ExcludeFileItems;
@@ -31,7 +31,7 @@ struct CExtractOptionsBase
   NExtract::NZoneIdMode::EEnum ZoneMode;
 
   CExtractNtOptions NtOptions;
-  
+
   FString OutputDir;
   UString HashDir;
 
@@ -42,7 +42,10 @@ struct CExtractOptionsBase
       OverwriteMode_Force(false),
       PathMode(NExtract::NPathMode::kFullPaths),
       OverwriteMode(NExtract::NOverwriteMode::kAsk),
-      ZoneMode(NExtract::NZoneIdMode::kNone)
+      // **************** NanaZip Modification Start ****************
+      // ZoneMode(NExtract::NZoneIdMode::kNone)
+      ZoneMode(NExtract::NZoneIdMode::Default)
+      // **************** NanaZip Modification End ****************
       {}
 };
 
@@ -52,7 +55,7 @@ struct CExtractOptions: public CExtractOptionsBase
   bool StdOutMode;
   bool YesToAll;
   bool TestMode;
-  
+
   // bool ShowDialog;
   // bool PasswordEnabled;
   // UString Password;
